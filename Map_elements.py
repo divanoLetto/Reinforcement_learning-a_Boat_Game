@@ -10,8 +10,8 @@ class Wall(pg.sprite.Sprite, Object):
         self.groups = game.all_sprites, game.walls_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.image.fill(WALL_COLOR)
-        self.rect.x = x * TILESIZE + 2
-        self.rect.y = y * TILESIZE + 2
+        self.rect.x = x * self.tilesize + 2
+        self.rect.y = y * self.tilesize + 2
 
 
 class Exit(pg.sprite.Sprite, Object):
@@ -20,8 +20,8 @@ class Exit(pg.sprite.Sprite, Object):
         self.groups = game.all_sprites, game.exit_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.image.fill(YELLOW)
-        self.rect.x = x * TILESIZE + 2
-        self.rect.y = y * TILESIZE + 2
+        self.rect.x = x * self.tilesize + 2
+        self.rect.y = y * self.tilesize + 2
 
 
 class PowerUps(pg.sprite.Sprite, Object):
@@ -33,8 +33,8 @@ class PowerUps(pg.sprite.Sprite, Object):
         Object.__init__(self, x, y, image, game)
         self.groups = game.all_sprites, game.power_ups_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
+        self.rect.x = x * self.tilesize
+        self.rect.y = y * self.tilesize
         self.effect = effect
 
     def acquired_by(self, character):

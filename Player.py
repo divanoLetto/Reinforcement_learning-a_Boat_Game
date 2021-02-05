@@ -43,8 +43,8 @@ class Player(pg.sprite.Sprite, Character):
             pg.event.post(pg.event.Event(ENEMY_TURN_EVENT))
 
     def update(self):
-        self.rect.x = self.x * TILESIZE
-        self.rect.y = self.y * TILESIZE
+        self.rect.x = self.x * self.tilesize
+        self.rect.y = self.y * self.tilesize
 
     def damage(self, damage):
         Character.damage(self, damage)

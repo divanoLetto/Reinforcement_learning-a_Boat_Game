@@ -27,6 +27,9 @@ class Object:
     def __init__(self, x, y, image, game):
         self.x = x
         self.y = y
+        self.tilesize = TILESIZE
+        self.gridheight = GRIDHEIGHT
+        self.gridwidth = GRIDWIDTH
         self.game = game
         self.image = image
         self.rect = self.image.get_rect()
@@ -44,6 +47,10 @@ class Character(Object):
     # Type: Discrete(2)
     #   0 Fire          2 Move center
     #   1 Move sx       3 Move dx
+    # codification directions:
+    #               0 1 2
+    # direction --> 8 x 4
+    #               7 6 5
     def __init__(self, x, y, list_images, game, nemesi):
         Object.__init__(self, x, y, pg.image.load(list_images[4]), game)
         self.image_N = pg.image.load(list_images[0])
@@ -57,13 +64,14 @@ class Character(Object):
         self.direction = [1, -1]
         self.feasible_move = []
         self.nemesi = nemesi
-        for id in [-1, 0, 1]:
+        self.max_direction_code = 8
+        for id in [-2, -1, 0, 1, 2]:  # for id in [-1, 0, 1]:
             self.feasible_move.append(FeasibleMove(self.game, self, id))
         self.range_fire = 2
         self.fire_shoots = self.fire_x_init()
         self.hp = 1
         self.max_hp = 2  # todo make this mechanics in powerup
-        self.num_actions = 4
+        self.num_actions = 1 + len(self.feasible_move)
 
     def fire_x_init(self):
         fire_xs = []
@@ -161,8 +169,8 @@ class FeasibleMove(pg.sprite.Sprite, Object):
 
         self.fix_dxdy = 2
         self.no_collision = True
-        self.rect.x = self.x * TILESIZE
-        self.rect.y = self.y * TILESIZE
+        self.rect.x = self.x * self.tilesize
+        self.rect.y = self.y * self.tilesize
 
     def move(self):
         d = self.player.getDirection()
@@ -173,7 +181,7 @@ class FeasibleMove(pg.sprite.Sprite, Object):
         for wall in self.game.walls:
             if isClose(wall.getX(), self.x, 0.5) and isClose(wall.getY(), self.y, 0.5):
                 self.no_collision = False
-        if self.x >= GRIDWIDTH / TILESIZE or self.x < 0 or self.y >= GRIDHEIGHT / TILESIZE or self.y < 0:
+        if self.x >= self.gridwidth / self.tilesize or self.x < 0 or self.y >= self.gridheight / self.tilesize or self.y < 0:
             self.no_collision = False
         if self.player.nemesi:
             if isClose(self.player.nemesi.getX(), self.x, 0.5) and isClose(self.player.nemesi.getY(), self.y, 0.5):
@@ -184,8 +192,8 @@ class FeasibleMove(pg.sprite.Sprite, Object):
 
     def update(self):
         if self.no_collision:
-            self.rect.x = self.x * TILESIZE + self.fix_dxdy
-            self.rect.y = self.y * TILESIZE + self.fix_dxdy
+            self.rect.x = self.x * self.tilesize + self.fix_dxdy
+            self.rect.y = self.y * self.tilesize + self.fix_dxdy
         else:
             self.rect.x = -10  # todo fix this
             self.rect.y = -10
@@ -222,7 +230,7 @@ class FireX(pg.sprite.Sprite, Object):
                     stop = True
                     break
             #  check out-of-map problem
-            if x >= GRIDWIDTH / TILESIZE or x < 0 or y >= GRIDHEIGHT / TILESIZE or y < 0:
+            if x >= self.gridwidth / self.tilesize or x < 0 or y >= self.gridheight / self.tilesize or y < 0:
                 range_fire = i - 1
                 stop = True
             if stop:
@@ -235,7 +243,7 @@ class FireX(pg.sprite.Sprite, Object):
             self.y = -10
 
     def update(self):
-        self.rect.x = self.x * TILESIZE
-        self.rect.y = self.y * TILESIZE
+        self.rect.x = self.x * self.tilesize
+        self.rect.y = self.y * self.tilesize
 
 

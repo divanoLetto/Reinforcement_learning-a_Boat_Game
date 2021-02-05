@@ -26,8 +26,8 @@ class Enemy(pg.sprite.Sprite, Character):
         self.image_broken = pg.image.load('images/explosion.png')
 
     def update(self):
-        self.rect.x = self.x * TILESIZE
-        self.rect.y = self.y * TILESIZE
+        self.rect.x = self.x * self.tilesize
+        self.rect.y = self.y * self.tilesize
 
     def damage(self, damage):
         Character.damage(self, damage)

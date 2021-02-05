@@ -1,6 +1,6 @@
 from settings import GRIDWIDTH, GRIDHEIGHT, TILESIZE
 
-num_actions = 4
+num_actions = 6 #4
 max_episode_timesteps = 30
 with_property_embedding = True
 

@@ -8,7 +8,7 @@ import random
 import numpy as np
 from tabulate import tabulate
 from deepcrawl.environment.game import Game
-from reinforcements_settings import print_map_during_steps,print_info_during_steps, nums_values_channel
+from reinforcements_settings import print_map_during_steps, print_info_during_steps, nums_values_channel
 
 
 class BoatGame:
@@ -37,6 +37,7 @@ class BoatGame:
         self.MIN_LINES_FOR_OBSTACLES = 1
         self.MAX_LINES_FOR_OBSTACLES = 2
         self.SIMULTAING_ENVIROMENT = SIMULTAING_ENVIROMENT
+        self.ON_SE_MANUAL_INPUT = ON_SE_MANUAL_INPUT
 
         self.ENEMY_TURN_EVENT = ENEMY_TURN_EVENT
         self.PLAYER_SHOOT_EVENT = PLAYER_SHOOT_EVENT
@@ -133,6 +134,7 @@ class BoatGame:
         #     print("    " + str(rand_pow_x) + " " + str(rand_pow_y))
 
         if self.print_map_during_steps:
+            print("Map generated:")
             self.print_map()
 
         return self.calc_observation()
@@ -158,6 +160,15 @@ class BoatGame:
 
         if self.print_info_during_steps:
             print("L'azione: " + str(actions) + " ha prodotto un reward di Reward: " + str(reward))
+            print("   Done= " + str(done))
+            print("   Agent previus action= " + str(observation["prev_action"]))
+            print("   Property view: ")
+            print("      agent hp=" + str(observation["property_view_0"][0]))
+            print("      agent direction=" + str(observation["property_view_0"][1] - self.enemy.max_hp - 1))
+            print("      agent range=" + str(observation["property_view_0"][2] - self.enemy.max_direction_code - self.enemy.max_hp - 2))
+            print("      enemy hp=" + str(observation["property_view_1"][0]))
+            print("      enemy direction=" + str(observation["property_view_1"][1] - self.player.max_hp - 1))
+            print("      enemy range=" + str(observation["property_view_1"][2] - self.player.max_direction_code - self.player.max_hp - 2))
         if self.print_map_during_steps:
             self.print_map()
 
@@ -171,7 +182,7 @@ class BoatGame:
         observation["local_view_1"] = Game.to_one_hot_static(self.calculate_local_observation_matrix(global_view, 5), self.nums_values_channel)
         observation["property_view_0"] = self.calculate_vector_properties(self.enemy)
         observation["property_view_1"] = self.calculate_vector_properties(self.player)
-        observation["prev_action"] = Game.to_one_hot_static(np.array(self.enemy.previus_action), 4)
+        observation["prev_action"] = Game.to_one_hot_static(np.array(self.enemy.previus_action), self.enemy.num_actions)
         return observation
 
     def calculate_global_observation_matrix(self):
@@ -226,13 +237,15 @@ class BoatGame:
         # direction --> 8 x 4
         # range         7 6 5
         soglia_1 = character.max_hp + 1
-        soglia_2 = soglia_1 + 8 + 1
-        return [character.hp, soglia_1 + table_feasible_directions[str(character.direction)],soglia_2 + character.range_fire]
+        soglia_2 = soglia_1 + character.max_direction_code + 1
+        return [character.hp, soglia_1 + table_feasible_directions[str(character.direction)], soglia_2 + character.range_fire]
 
     def is_game_over(self):
         if self.player.hp <= 0 or self.enemy.hp <= 0:
             return True
         else:
+            if not any(x.check_not_collision() for x in self.enemy.feasible_move):
+                return True
             return False
 
     def calc_reward(self, done, is_possible_action):
@@ -287,7 +300,10 @@ class BoatGame:
         sys.exit()
 
     def step_function_testing(self):  # just for testing
-        action = self.enemy.random_action()  # just for testing
+        if self.ON_SE_MANUAL_INPUT:
+            action = int(input("Insert agent action: "))
+        else:
+            action = self.enemy.random_action()  # just for testing
         self.step(action)  # just for testing
         pg.time.delay(400)  # just for testing
         self.player.update_shoot_and_feasible_moves()  # just for testing
@@ -368,6 +384,6 @@ class BoatGame:
         glb_m = self.calculate_global_observation_matrix()
         glb_m = glb_m.T
         df = pandas.DataFrame(glb_m)
-        df[self.player.getX()][self.player.getY()] = "###"
-        df[self.enemy.getX()][self.enemy.getY()] = "!!!"
+        df[self.player.getX()][self.player.getY()] = "#p#"
+        df[self.enemy.getX()][self.enemy.getY()] = "!e!"
         print(tabulate(df, headers='keys', tablefmt='fancy_grid'))

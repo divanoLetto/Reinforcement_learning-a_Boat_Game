@@ -45,4 +45,5 @@ PLAYER_SHOOT_EVENT = pg.event.custom_type()
 PLAYER_GAME_OVER = pg.event.custom_type()
 
 SIMULTAING_ENVIROMENT = False
+ON_SE_MANUAL_INPUT = False
 
