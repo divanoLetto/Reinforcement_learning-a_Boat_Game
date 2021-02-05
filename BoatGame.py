@@ -91,7 +91,7 @@ class BoatGame:
         while any(rand_px == w.x and rand_py == w.y for w in self.walls):
             rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         # print("    " + str(rand_px) + " " + str(rand_py))
-        self.player = Player(self, rand_px, rand_py, self.on_pley_mode)
+        self.player = Player(self, rand_px, rand_py, self.on_play_mode)
 
         # enemies
         # print("enemies generating:")
