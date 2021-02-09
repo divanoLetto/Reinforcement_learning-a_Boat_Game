@@ -70,7 +70,7 @@ class Character(Object):
         self.range_fire = 2
         self.fire_shoots = self.fire_x_init()
         self.hp = 1
-        self.max_hp = 2  # todo make this mechanics in powerup
+        self.max_hp = 2
         self.num_actions = 1 + len(self.feasible_move)
 
     def fire_x_init(self):
@@ -90,6 +90,8 @@ class Character(Object):
         self.setDirection(dx, dy)
         self.x += dx
         self.y += dy
+        self.update_shoot_and_feasible_moves()
+        self.nemesi.update_shoot_and_feasible_moves()
 
     def step_turn(self, action):
         # return True if perform a feasible action. False otherwise
@@ -118,15 +120,18 @@ class Character(Object):
     def shoot_fire(self):
         for shoot in self.fire_shoots:
             if self.nemesi is None:
-                print("error")
+                print("error no nemesi")
             wx = self.nemesi.x
             wy = self.nemesi.y
             if isClose(wx, shoot.getX(), 0.5) and isClose(wy, shoot.getY(), 0.5):
                 self.nemesi.damage(1)
+        self.update_shoot_and_feasible_moves()
+        self.nemesi.update_shoot_and_feasible_moves()
 
     def damage(self, damage):
         # ,print("Damage!")
         self.hp -= damage
+        self.hp = max(self.hp, 0)
 
     def setDirection(self, dx, dy):
         if dx == 0 and dy == 0:

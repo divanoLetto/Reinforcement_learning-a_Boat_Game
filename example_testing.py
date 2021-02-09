@@ -18,10 +18,12 @@ net = Net(embedding_mode='dense_embedding', num_local_views=num_local_views, num
 baseline = Baseline(embedding_mode='dense_embedding', num_local_views=num_local_views, num_property_views=num_property_views, num_actions=num_actions, with_property_embedding=with_property_embedding)
 
 # Create the NPC
-npc = NPC(action=dict(type='int', num_values=6), state=state.get_state_dict(), net=net, baseline=net, name='BoatGame NPC')
+npc = NPC(game=game, net=net, baseline=net, name='BoatGame NPC')
+# npc.get_npc_configuration()
+npc.load_model()
 
-# Create the trainer
-trainer = DCTrainer(game=game, npc=npc, curriculum=None)
+# state = 'A possible state. You need to create the state in your game'
+action, probability_distribution = npc.select_action(state)
 
-# Start the training
-trainer.start_training()
+
+

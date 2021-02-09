@@ -8,7 +8,8 @@ class Enemy(pg.sprite.Sprite, Character):
     # Type: Discrete(2)
     #   0 Fire          2 Move center
     #   1 Move sx       3 Move dx
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, on_play_mode):
+        self.on_play_mode = on_play_mode
         self.groups = game.all_sprites, game.enemies_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         list_images = [
@@ -31,10 +32,12 @@ class Enemy(pg.sprite.Sprite, Character):
 
     def damage(self, damage):
         Character.damage(self, damage)
-        if self.hp <= 0:
+        if self.hp <= 0 and self.on_play_mode:
             self.kill()
             self.image = self.image_broken
             pg.sprite.Sprite.__init__(self, self.game.all_sprites, self.game.walls_sprites)
+            pg.time.delay(400)
+            pg.event.post(pg.event.Event(PLAYER_GAME_OVER))
 
 
 

@@ -1,5 +1,6 @@
 import sys
 import pandas
+
 from Map_elements import *
 from Player import *
 from Enemy import *
@@ -7,8 +8,15 @@ from pygame_widgets import Button
 import random
 import numpy as np
 from tabulate import tabulate
+
+from deepcrawl.agents.npc import NPC
 from deepcrawl.environment.game import Game
+from deepcrawl.net_structures.net import Net, Baseline
+from deepcrawl.state.dense_embedding_state import DenseEmbeddingState
 from reinforcements_settings import print_map_during_steps, print_info_during_steps, nums_values_channel
+from reinforcements_settings import num_actions, max_episode_timesteps, with_property_embedding, num_local_views
+from reinforcements_settings import num_channels_map, num_property_views, scale_global_view, scales_local_views
+from reinforcements_settings import scales_property_views, nums_values_channel, nums_values_property
 
 
 class BoatGame:
@@ -37,7 +45,8 @@ class BoatGame:
         self.MIN_LINES_FOR_OBSTACLES = 1
         self.MAX_LINES_FOR_OBSTACLES = 2
         self.SIMULTAING_ENVIROMENT = SIMULTAING_ENVIROMENT
-        self.ON_SE_MANUAL_INPUT = ON_SE_MANUAL_INPUT
+        self.ON_SE_MANUAL_INPUT = ON_SE_MANUAL_INPUT_AGENT
+        self.ON_SE_MANUAL_INPUT_PLAYER = ON_SE_MANUAL_INPUT_PLAYER
 
         self.ENEMY_TURN_EVENT = ENEMY_TURN_EVENT
         self.PLAYER_SHOOT_EVENT = PLAYER_SHOOT_EVENT
@@ -51,6 +60,25 @@ class BoatGame:
             self.screen = pg.display.set_mode((self.WIDTH, self.HEIGHT))
             pg.display.set_caption(TITLE)
             pg.key.set_repeat(500, 100)
+
+            state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_views=scales_local_views,
+                                        num_channels=num_channels_map,
+                                        scales_property_views=scales_property_views,
+                                        nums_values_channel=nums_values_channel,
+                                        nums_values_property=nums_values_property, num_actions=num_actions,
+                                        with_property_embedding=with_property_embedding)
+            # Create the net and the baseline
+            net = Net(embedding_mode='dense_embedding', num_local_views=num_local_views,
+                      num_property_views=num_property_views, num_actions=num_actions,
+                      with_property_embedding=with_property_embedding)
+            baseline = Baseline(embedding_mode='dense_embedding', num_local_views=num_local_views,
+                                num_property_views=num_property_views, num_actions=num_actions,
+                                with_property_embedding=with_property_embedding)
+            # Create the NPC
+            self.npc = NPC(action=dict(type='int', num_values=6), state=state.get_state_dict(), net=net, baseline=net,
+                           name='BoatGame NPC')
+            self.npc.get_npc_configuration()
+            self.npc.load_model()
 
     def init_game(self):
         # initialize all variables and do all the setup for a new game
@@ -89,7 +117,7 @@ class BoatGame:
         # player
         # print("player generating:")
         rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
-        while any(rand_px == w.x and rand_py == w.y for w in self.walls):
+        while any(isClose(rand_px, w.x, 0.5) and isClose(rand_py, w.y, 0.5) for w in self.walls):
             rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         # print("    " + str(rand_px) + " " + str(rand_py))
         self.player = Player(self, rand_px, rand_py, self.on_play_mode)
@@ -99,12 +127,12 @@ class BoatGame:
         rand_ex, rand_ey = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         px, py = int(self.player.getX()), int(self.player.getY())
         try:
-            while any(rand_ex == w.x and rand_ey == w.y for w in self.walls + [self.player]): #and np.linalg.norm((int(rand_ex), int(rand_ey)), (px, py) )> MIN_START_DISTANCE_PLAYER_ENEMY:
+            while any(isClose(rand_ex, w.x, 0.5) and isClose(rand_ey, w.y, 0.5) for w in self.walls + [self.player]): #and np.linalg.norm((int(rand_ex), int(rand_ey)), (px, py) )> MIN_START_DISTANCE_PLAYER_ENEMY:
                 rand_ex, rand_ey = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         except Exception as e:
             print("Something else went wrong 1")
         # print("    " + str(rand_ex) + " " + str(rand_ey))
-        self.enemy = Enemy(self, rand_ex, rand_ey)
+        self.enemy = Enemy(self, rand_ex, rand_ey, self.on_play_mode)
         self.player.set_nemesi(self.enemy)
 
         # exit
@@ -113,13 +141,12 @@ class BoatGame:
         if self.NUM_EXITS != 0:
             rand_exit_x, rand_exit_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE - 1)
             try:
-                while any(rand_exit_x == w.x and rand_exit_y == w.y for w in self.walls + [self.player] + [self.enemy]): # and np.linalg.norm((int(rand_exit_x), int(rand_exit_y)), (int(self.player.getX()), int(self.player.getY()))) > MIN_START_DISTANCE_PLAYER_EXIT:
+                while any(isClose(rand_exit_x, w.x, 0.5) and isClose(rand_exit_y, w.y, 0.5) for w in self.walls + [self.player] + [self.enemy]): # and np.linalg.norm((int(rand_exit_x), int(rand_exit_y)), (int(self.player.getX()), int(self.player.getY()))) > MIN_START_DISTANCE_PLAYER_EXIT:
                     rand_exit_x, rand_exit_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE - 1)
             except Exception as e:
                 print("Something else went wrong 2")
             self.exit.append(Exit(self, rand_exit_x, rand_exit_y))
         # print("    " + str(rand_exit_x) + " " + str(rand_exit_y))
-
 
         # power ups
         # print("power ups generating:")
@@ -127,7 +154,7 @@ class BoatGame:
         for i in range(num_powerup):
             rand_pow_x, rand_pow_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE -1)
             rand_effect = 0
-            while any(rand_pow_x == w.x and rand_pow_y == w.y for w in
+            while any(isClose(rand_pow_x, w.x, 0.5) and isClose(rand_pow_y, w.y, 0.5) for w in
                       self.walls + [self.player] + [self.enemy] + self.power_ups):
                 rand_pow_x, rand_pow_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE -1)
             self.power_ups.append(PowerUps(self, rand_pow_x, rand_pow_y, rand_effect))
@@ -143,7 +170,11 @@ class BoatGame:
     def step(self, actions):
         is_possible_action = self.enemy.step_turn(actions)  # todo fix this
         # pg.time.delay(400)  # just for testing
-        player_random_action = self.player.random_action()
+        if self.ON_SE_MANUAL_INPUT_PLAYER and self.SIMULTAING_ENVIROMENT:
+            print("Choose action for the player")
+            player_random_action = int(input())
+        else:
+            player_random_action = self.player.random_action()
         self.player.step_turn(player_random_action)
         for powerup in self.power_ups:
             if self.enemy.getX() == powerup.x and self.enemy.getY() == powerup.y:
@@ -336,8 +367,8 @@ class BoatGame:
                 # check feasible player move
                 for block in self.player.feasible_move:
                     if block.rect.collidepoint(pg.mouse.get_pos()):
-                        dx = int(block.rect.x / TILESIZE) - self.player.x
-                        dy = int(block.rect.y / TILESIZE) - self.player.y
+                        dx = int(block.rect.x / self.TILESIZE) - self.player.x
+                        dy = int(block.rect.y / self.TILESIZE) - self.player.y
                         self.player.move(dx, dy)
                         # check powerup
                         for powerup in self.power_ups:
@@ -347,19 +378,24 @@ class BoatGame:
                         for exit in self.exit:
                             if self.player.x == exit.x and self.player.y == exit.y:
                                 print("win")
-            if event.type == PLAYER_SHOOT_EVENT:
+            if event.type == self.PLAYER_SHOOT_EVENT:
                 self.player.shoot_fire()
 
             # enemy turn
-            if event.type == ENEMY_TURN_EVENT:
+            if event.type == self.ENEMY_TURN_EVENT:
                 pg.time.delay(100)
-                enemy_action = self.enemy.random_action()
+                state = self.calc_observation()
+                enemy_action, probability_distribution = self.npc.select_action(state)
+                # enemy_action = self.enemy.random_action()
+                # print("enemy action: " + str(enemy_action))
                 self.enemy.step_turn(enemy_action)
                 for powerup in self.power_ups:
                     if self.enemy.getX() == powerup.x and self.enemy.getY() == powerup.y:
                         powerup.acquired_by(self.enemy)
-                self.player.update_shoot_and_feasible_moves()
-                self.enemy.update_shoot_and_feasible_moves()
+
+            if event.type == self.PLAYER_GAME_OVER:
+                print("Game over")
+                self.reset()
 
     # draw funcions
     def update(self):

@@ -23,14 +23,6 @@ class Player(pg.sprite.Sprite, Character):
             'images/player_NO.png'
         ]
         Character.__init__(self, x, y, list_images, game, game.enemy)
-        # self.image_N = pg.image.load('images/player_N.png')
-        # self.image_E = pg.image.load('images/player_E.png')
-        # self.image_S = pg.image.load('images/player_S.png')
-        # self.image_O = pg.image.load('images/player_O.png')
-        # self.image_NE = pg.image.load('images/player_NE.png')
-        # self.image_SE = pg.image.load('images/player_SE.png')
-        # self.image_SO = pg.image.load('images/player_SO.png')
-        # self.image_NO = pg.image.load('images/player_NO.png')
 
     def move(self, dx, dy):
         Character.move(self, dx, dy)
