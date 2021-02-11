@@ -391,7 +391,7 @@ class BoatGame:
 
                 enemy_action, probability_distribution = self.npc.select_action(state)
                 # enemy_action = self.enemy.random_action()
-                print("enemy action: " + str(enemy_action))
+                # print("enemy action: " + str(enemy_action))
 
                 # perform agent action
                 is_possible_action = self.enemy.step_turn(enemy_action)

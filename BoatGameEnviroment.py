@@ -40,9 +40,9 @@ class BoatGameEnvironment(Game):
     def execute(self, actions):
         actions = self.get_manual_input(actions)
         observation, reward, done = self.game.step(actions)
-        print("Print precedente al return del metodo execute")
-        self.game.print_map()
-        self.game.print_state(observation, actions, done, reward)
+        # print("Print precedente al return del metodo execute")
+        # self.game.print_map()
+        # self.game.print_state(observation, actions, done, reward)
         return (observation, done, reward)
 
     def command_to_action(self, command):
