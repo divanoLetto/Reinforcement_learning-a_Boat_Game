@@ -10,19 +10,19 @@ class Enemy(pg.sprite.Sprite, Character):
     #   1 Move sx       3 Move dx
     def __init__(self, game, x, y, on_play_mode):
         self.on_play_mode = on_play_mode
-        self.groups = game.all_sprites, game.enemies_sprites
+        self.groups = game.characters_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         list_images = [
-            'images/player_N.png',
-            'images/player_E.png',
-            'images/player_S.png',
-            'images/player_O.png',
-            'images/player_NE.png',
-            'images/player_SE.png',
-            'images/player_SO.png',
-            'images/player_NO.png'
+            'images/player_N2.png',
+            'images/player_E2.png',
+            'images/player_S2.png',
+            'images/player_O2.png',
+            'images/player_NE2.png',
+            'images/player_SE2.png',
+            'images/player_SO2.png',
+            'images/player_NO2.png'
         ]
-        Character.__init__(self, x, y, list_images, game, game.player)
+        Character.__init__(self, x, y, list_images, game, game.player, game.feasible_moves_enemy)
         self.previus_action = 0  # todo update that
         self.image_broken = pg.image.load('images/explosion.png')
 
@@ -35,7 +35,7 @@ class Enemy(pg.sprite.Sprite, Character):
         if self.hp <= 0 and self.on_play_mode:
             self.kill()
             self.image = self.image_broken
-            pg.sprite.Sprite.__init__(self, self.game.all_sprites, self.game.walls_sprites)
+            pg.sprite.Sprite.__init__(self, self.game.characters_sprites)
             pg.time.delay(400)
             pg.event.post(pg.event.Event(PLAYER_GAME_OVER))
 

@@ -103,10 +103,13 @@ class BoatGame:
         self.count_resetting += 1
         # sprites
         self.all_sprites = pg.sprite.Group()
-        self.walls_sprites = pg.sprite.Group()
-        self.enemies_sprites = pg.sprite.Group()
+        self.feasible_moves_enemy = pg.sprite.Group()
+        self.feasible_moves_player = pg.sprite.Group()
+        self.fire_xs = pg.sprite.Group()
+        self.characters_sprites = pg.sprite.Group()
         self.exit_sprites = pg.sprite.Group()
         self.power_ups_sprites = pg.sprite.Group()
+        self.walls_sprites = pg.sprite.Group()
 
         self.enemy = None
         self.walls = []
@@ -117,18 +120,27 @@ class BoatGame:
         # player
         # print("player generating:")
         rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
-        while any(isClose(rand_px, w.x, 0.5) and isClose(rand_py, w.y, 0.5) for w in self.walls):
+        count = 200
+        threshold = 1.2
+        while any(isClose(rand_px, w.x, threshold) and isClose(rand_py, w.y, threshold) for w in self.walls):
             rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
+            count -= 1
+            if count < 0:
+                threshold = 0.5
         # print("    " + str(rand_px) + " " + str(rand_py))
         self.player = Player(self, rand_px, rand_py, self.on_play_mode)
 
         # enemies
         # print("enemies generating:")
         rand_ex, rand_ey = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
-        px, py = int(self.player.getX()), int(self.player.getY())
+        count = 200
+        threshold = 1.2
         try:
-            while any(isClose(rand_ex, w.x, 0.5) and isClose(rand_ey, w.y, 0.5) for w in self.walls + [self.player]): #and np.linalg.norm((int(rand_ex), int(rand_ey)), (px, py) )> MIN_START_DISTANCE_PLAYER_ENEMY:
+            while any(isClose(rand_ex, w.x, threshold) and isClose(rand_ey, w.y, threshold) for w in self.walls + [self.player]): #and np.linalg.norm((int(rand_ex), int(rand_ey)), (px, py) )> MIN_START_DISTANCE_PLAYER_ENEMY:
                 rand_ex, rand_ey = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
+                count -= 1
+                if count < 0:
+                    threshold = 0.5
         except Exception as e:
             print("Something else went wrong 1")
         # print("    " + str(rand_ex) + " " + str(rand_ey))
@@ -169,7 +181,6 @@ class BoatGame:
     # reinforcement learning framework functions
     def step(self, actions):
         is_possible_action = self.enemy.step_turn(actions)  # todo fix this
-        # pg.time.delay(400)  # just for testing
         if self.ON_SE_MANUAL_INPUT_PLAYER and self.SIMULTAING_ENVIROMENT:
             print("Choose action for the player")
             player_random_action = int(input())
@@ -190,16 +201,7 @@ class BoatGame:
         self.enemy.previus_action = actions
 
         if self.print_info_during_steps:
-            print("L'azione: " + str(actions) + " ha prodotto un reward di Reward: " + str(reward))
-            print("   Done= " + str(done))
-            print("   Agent previus action= " + str(observation["prev_action"]))
-            print("   Property view: ")
-            print("      agent hp=" + str(observation["property_view_0"][0]))
-            print("      agent direction=" + str(observation["property_view_0"][1] - self.enemy.max_hp - 1))
-            print("      agent range=" + str(observation["property_view_0"][2] - self.enemy.max_direction_code - self.enemy.max_hp - 2))
-            print("      enemy hp=" + str(observation["property_view_1"][0]))
-            print("      enemy direction=" + str(observation["property_view_1"][1] - self.player.max_hp - 1))
-            print("      enemy range=" + str(observation["property_view_1"][2] - self.player.max_direction_code - self.player.max_hp - 2))
+            self.print_state(observation, actions, done, reward)
         if self.print_map_during_steps:
             self.print_map()
 
@@ -220,7 +222,7 @@ class BoatGame:
         #  Map Observations
         #     0 = free                                4 = exit
         #     1 = wall                                5 = power-up_1
-        #     2 = player                              # 6 = power-up_2
+        #     2 = player
         #     3 = agents/enemies - self if alone
 
         w, h = int(self.GRIDWIDTH / self.TILESIZE), int(self.GRIDHEIGHT / self.TILESIZE)
@@ -239,8 +241,6 @@ class BoatGame:
         for powerup in self.power_ups:
             if powerup.effect == 0:
                 global_matrix[powerup.x][powerup.y] = 5
-            # else:
-            #    global_matrix[powerup.x][powerup.y] = 6
         return np.array(global_matrix)
 
     def calculate_local_observation_matrix(self, global_matrix, n):
@@ -264,9 +264,9 @@ class BoatGame:
         return np.array(matricx_local_nxn)
 
     def calculate_vector_properties(self, character):
-        # hp            0 1 2
-        # direction --> 8 x 4
-        # range         7 6 5
+        # hp [0,1,2]               [ 0 1 2 ]
+        # direction -------------> [ 8 x 4 ]
+        # range [0,1,2,3,4,5]      [ 7 6 5 ]
         soglia_1 = character.max_hp + 1
         soglia_2 = soglia_1 + character.max_direction_code + 1
         return [character.hp, soglia_1 + table_feasible_directions[str(character.direction)], soglia_2 + character.range_fire]
@@ -288,7 +288,7 @@ class BoatGame:
         return rew
 
     # generate map
-    def generateMap(self):  # todo togliere power up secondo tipo
+    def generateMap(self):
         # walls
         num_obstacles = random.randint(self.MIN_NUM_OBSTACLE, self.MAX_NUM_OBSTACLE)
         # print("wall generating:")
@@ -334,16 +334,16 @@ class BoatGame:
         if self.ON_SE_MANUAL_INPUT:
             action = int(input("Insert agent action: "))
         else:
-            action = self.enemy.random_action()  # just for testing
-        self.step(action)  # just for testing
-        pg.time.delay(400)  # just for testing
-        self.player.update_shoot_and_feasible_moves()  # just for testing
-        self.enemy.update_shoot_and_feasible_moves()  # just for testing
+            action = self.enemy.random_action()
+        self.step(action)
+        pg.time.delay(400)
+        self.player.update_shoot_and_feasible_moves()
+        self.enemy.update_shoot_and_feasible_moves()
 
     def events(self):
-        if self.SIMULTAING_ENVIROMENT:
-            self.step_function_testing()  # just for testing
-            return 0  # just for testing
+        if self.SIMULTAING_ENVIROMENT: # just for testing
+            self.step_function_testing()
+            return 0
 
         # check hover mouse
         events = pg.event.get()
@@ -385,13 +385,27 @@ class BoatGame:
             if event.type == self.ENEMY_TURN_EVENT:
                 pg.time.delay(100)
                 state = self.calc_observation()
+
+                # self.print_map()
+                # self.print_state(state, "?", "?", "?")
+
                 enemy_action, probability_distribution = self.npc.select_action(state)
                 # enemy_action = self.enemy.random_action()
-                # print("enemy action: " + str(enemy_action))
-                self.enemy.step_turn(enemy_action)
+                print("enemy action: " + str(enemy_action))
+
+                # perform agent action
+                is_possible_action = self.enemy.step_turn(enemy_action)
+                # update agent's previus action
+                self.enemy.previus_action = enemy_action
                 for powerup in self.power_ups:
                     if self.enemy.getX() == powerup.x and self.enemy.getY() == powerup.y:
                         powerup.acquired_by(self.enemy)
+                if self.print_info_during_steps:
+                    done = self.is_game_over()
+                    reward = self.calc_reward(done, is_possible_action)
+                    self.print_state(state, enemy_action, done, reward)
+                if self.print_map_during_steps:
+                    self.print_map()
 
             if event.type == self.PLAYER_GAME_OVER:
                 print("Game over")
@@ -401,6 +415,13 @@ class BoatGame:
     def update(self):
         # update portion of the game loop
         self.all_sprites.update()
+        self.feasible_moves_enemy.update()
+        self.feasible_moves_player.update()
+        self.fire_xs.update()
+        self.characters_sprites.update()
+        self.exit_sprites.update()
+        self.power_ups_sprites.update()
+        self.walls_sprites.update()
 
     def draw_grid(self):
         for x in range(0, self.GRIDWIDTH + self.TILESIZE, self.TILESIZE):
@@ -413,8 +434,31 @@ class BoatGame:
         pg.draw.rect(self.screen, SETTING_COLOR, (self.GRIDWIDTH, 0, self.SETTING_WIDTH, self.SETTING_HEIGHT))
         self.draw_grid()
         self.all_sprites.draw(self.screen)
+
+        self.walls_sprites.draw(self.screen)
+        self.feasible_moves_enemy.draw(self.screen)
+        self.feasible_moves_player.draw(self.screen)
+        self.exit_sprites.draw(self.screen)
+        self.power_ups_sprites.draw(self.screen)
+        self.fire_xs.draw(self.screen)
+        self.characters_sprites.draw(self.screen)
+
         self.button_fire.draw()
         pg.display.flip()
+
+    def print_state(self, observation, actions, done, reward):
+        print("L'azione: " + str(actions) + " ha prodotto un reward di Reward: " + str(reward))
+        print("   Done= " + str(done))
+        print("   Agent previus action= " + str(observation["prev_action"]))
+        print("   Property view: ")
+        print("      agent hp=" + str(observation["property_view_0"][0]))
+        print("      agent direction=" + str(observation["property_view_0"][1] - self.enemy.max_hp - 1))
+        print("      agent range=" + str(observation["property_view_0"][2] - self.enemy.max_direction_code - self.enemy.max_hp - 2))
+        print("      enemy hp=" + str(observation["property_view_1"][0]))
+        print("      enemy direction=" + str(observation["property_view_1"][1] - self.player.max_hp - 1))
+        print("      enemy range=" + str(observation["property_view_1"][2] - self.player.max_direction_code - self.player.max_hp - 2))
+        print("      full property view_agent=" + str(observation["property_view_0"]))
+        print("      full property view_player=" + str(observation["property_view_1"]))
 
     def print_map(self):
         glb_m = self.calculate_global_observation_matrix()

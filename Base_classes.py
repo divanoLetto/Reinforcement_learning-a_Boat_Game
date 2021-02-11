@@ -51,7 +51,7 @@ class Character(Object):
     #               0 1 2
     # direction --> 8 x 4
     #               7 6 5
-    def __init__(self, x, y, list_images, game, nemesi):
+    def __init__(self, x, y, list_images, game, nemesi, game_feasible_moves_character_sprites):
         Object.__init__(self, x, y, pg.image.load(list_images[4]), game)
         self.image_N = pg.image.load(list_images[0])
         self.image_E = pg.image.load(list_images[1])
@@ -66,7 +66,7 @@ class Character(Object):
         self.nemesi = nemesi
         self.max_direction_code = 8
         for id in [-2, -1, 0, 1, 2]:  # for id in [-1, 0, 1]:
-            self.feasible_move.append(FeasibleMove(self.game, self, id))
+            self.feasible_move.append(FeasibleMove(self.game, self, id, game_feasible_moves_character_sprites))
         self.range_fire = 2
         self.fire_shoots = self.fire_x_init()
         self.hp = 1
@@ -162,9 +162,9 @@ class Character(Object):
 
 
 class FeasibleMove(pg.sprite.Sprite, Object):
-    def __init__(self, game, player, id):
+    def __init__(self, game, player, id, game_feasible_moves_character_sprites):
         Object.__init__(self, None, None,  pg.Surface((TILESIZE - 3, TILESIZE - 3)), game)
-        self.groups = game.all_sprites
+        self.groups = game_feasible_moves_character_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.player = player
         self.id = id
@@ -200,14 +200,14 @@ class FeasibleMove(pg.sprite.Sprite, Object):
             self.rect.x = self.x * self.tilesize + self.fix_dxdy
             self.rect.y = self.y * self.tilesize + self.fix_dxdy
         else:
-            self.rect.x = -10  # todo fix this
-            self.rect.y = -10
+            self.rect.x = +100000  # todo fix this
+            self.rect.y = +100000
 
 
 class FireX(pg.sprite.Sprite, Object):
     def __init__(self, game, player,  id, traj):
         Object.__init__(self, None, None, pg.image.load('images/fire_x.png'), game)
-        self.groups = game.all_sprites
+        self.groups = game.fire_xs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.player = player
