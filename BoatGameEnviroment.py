@@ -1,5 +1,3 @@
-import gym
-import numpy as np
 from deepcrawl.environment.game import Game
 from BoatGame import BoatGame
 
@@ -40,7 +38,7 @@ class BoatGameEnvironment(Game):
     def execute(self, actions):
         actions = self.get_manual_input(actions)
         observation, reward, done = self.game.step(actions)
-        # print("Print precedente al return del metodo execute")
+        # print("Next state")
         # self.game.print_map()
         # self.game.print_state(observation, actions, done, reward)
         return (observation, done, reward)

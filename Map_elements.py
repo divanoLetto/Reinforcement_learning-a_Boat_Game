@@ -42,6 +42,7 @@ class PowerUps(pg.sprite.Sprite, Object):
         elif self.effect == 1:
             # malus: less range
             character.range_fire = 1
+        character.update_shoot_and_feasible_moves()
         self.game.power_ups.remove(self)
         self.kill()
 

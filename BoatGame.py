@@ -13,7 +13,7 @@ from deepcrawl.agents.npc import NPC
 from deepcrawl.environment.game import Game
 from deepcrawl.net_structures.net import Net, Baseline
 from deepcrawl.state.dense_embedding_state import DenseEmbeddingState
-from reinforcements_settings import print_map_during_steps, print_info_during_steps, nums_values_channel
+from reinforcements_settings import ON_TRAINING_PRINT_MAP_DURING_STEPS, ON_TRAINING_PRINT_INFO_DURING_STEPS, nums_values_channel
 from reinforcements_settings import num_actions, max_episode_timesteps, with_property_embedding, num_local_views
 from reinforcements_settings import num_channels_map, num_property_views, scale_global_view, scales_local_views
 from reinforcements_settings import scales_property_views, nums_values_channel, nums_values_property
@@ -23,8 +23,10 @@ class BoatGame:
     def __init__(self, on_play_mode):
         pg.init()
         self.clock = pg.time.Clock()
-        self.print_map_during_steps = print_map_during_steps
-        self.print_info_during_steps = print_map_during_steps
+        self.ON_TRAINING_PRINT_MAP_DURING_STEPS = ON_TRAINING_PRINT_MAP_DURING_STEPS
+        self.ON_TRAINING_PRINT_INFO_DURING_STEPS = ON_TRAINING_PRINT_INFO_DURING_STEPS
+        self.ON_GAME_PRINT_MAP_DURING_STEPS = ON_GAME_PRINT_MAP_DURING_STEPS
+        self.ON_GAME_PRINT_INFO_DURING_STEPS = ON_GAME_PRINT_INFO_DURING_STEPS
 
         self.SETTING_WIDTH = SETTING_WIDTH
         self.SETTING_HEIGHT = SETTING_HEIGHT
@@ -45,8 +47,8 @@ class BoatGame:
         self.MIN_LINES_FOR_OBSTACLES = 1
         self.MAX_LINES_FOR_OBSTACLES = 2
         self.SIMULTAING_ENVIROMENT = SIMULTAING_ENVIROMENT
-        self.ON_SE_MANUAL_INPUT = ON_SE_MANUAL_INPUT_AGENT
-        self.ON_SE_MANUAL_INPUT_PLAYER = ON_SE_MANUAL_INPUT_PLAYER
+        self.ON_SE_MANUAL_INPUT = ON_SIMULATING_ENV_MANUAL_INPUT_AGENT
+        self.ON_SE_MANUAL_INPUT_PLAYER = ON_SIMULATING_ENV_MANUAL_INPUT_PLAYER
 
         self.ENEMY_TURN_EVENT = ENEMY_TURN_EVENT
         self.PLAYER_SHOOT_EVENT = PLAYER_SHOOT_EVENT
@@ -172,7 +174,7 @@ class BoatGame:
             self.power_ups.append(PowerUps(self, rand_pow_x, rand_pow_y, rand_effect))
         #     print("    " + str(rand_pow_x) + " " + str(rand_pow_y))
 
-        if self.print_map_during_steps:
+        if self.ON_TRAINING_PRINT_MAP_DURING_STEPS:
             print("Map generated:")
             self.print_map()
 
@@ -180,29 +182,35 @@ class BoatGame:
 
     # reinforcement learning framework functions
     def step(self, actions):
+        # agent perform the action
         is_possible_action = self.enemy.step_turn(actions)  # todo fix this
+
+        # random action by the agent's enemy
         if self.ON_SE_MANUAL_INPUT_PLAYER and self.SIMULTAING_ENVIROMENT:
             print("Choose action for the player")
             player_random_action = int(input())
         else:
             player_random_action = self.player.random_action()
         self.player.step_turn(player_random_action)
+
         for powerup in self.power_ups:
             if self.enemy.getX() == powerup.x and self.enemy.getY() == powerup.y:
                 powerup.acquired_by(self.enemy)
             if self.player.getX() == powerup.x and self.player.getY() == powerup.y:
                 powerup.acquired_by(self.player)
+        # update feasible moves and fire_xs
         self.player.update_shoot_and_feasible_moves()
         self.enemy.update_shoot_and_feasible_moves()
+        # update last action
+        self.enemy.previus_action = actions
+        # calc next state
         observation = self.calc_observation()
         done = self.is_game_over()
         reward = self.calc_reward(done, is_possible_action)
-        # update last action
-        self.enemy.previus_action = actions
 
-        if self.print_info_during_steps:
+        if self.ON_TRAINING_PRINT_INFO_DURING_STEPS:
             self.print_state(observation, actions, done, reward)
-        if self.print_map_during_steps:
+        if self.ON_TRAINING_PRINT_MAP_DURING_STEPS:
             self.print_map()
 
         return observation, reward, done
@@ -221,34 +229,41 @@ class BoatGame:
     def calculate_global_observation_matrix(self):
         #  Map Observations
         #     0 = free                                4 = exit
-        #     1 = wall                                5 = power-up_1
-        #     2 = player
-        #     3 = agents/enemies - self if alone
+        #     1 = wall                                5 = fire_x_player
+        #     2 = player                              6 = fire_x_agent/enemie
+        #     3 = agent/enemie                        7 = power-up_1
 
         w, h = int(self.GRIDWIDTH / self.TILESIZE), int(self.GRIDHEIGHT / self.TILESIZE)
         global_matrix = [[0 for y in range(h)] for x in range(w)]
         #  walls
         for wall in self.walls:
             global_matrix[wall.x][wall.y] = 1
+        #  exits
+        for ex in self.exit:
+            global_matrix[ex.getX()][ex.getY()] = 4
+        #  fire xs
+        for fire_x_p in self.player.fire_shoots:
+            if 0 <= fire_x_p.getX() <= self.GRIDWIDTH / self.TILESIZE and 0 <= fire_x_p.getY() <= self.GRIDHEIGHT / self.TILESIZE:
+                global_matrix[fire_x_p.getX()][fire_x_p.getY()] = 5
+        for fire_x_p in self.enemy.fire_shoots:
+            if 0 <= fire_x_p.getX() <= self.GRIDWIDTH / self.TILESIZE and 0 <= fire_x_p.getY() <= self.GRIDHEIGHT / self.TILESIZE:
+                global_matrix[fire_x_p.getX()][fire_x_p.getY()] = 6
         #  player
         global_matrix[self.player.getX()][self.player.getY()] = 2
         #  self agent
         global_matrix[self.enemy.getX()][self.enemy.getY()] = 3
-        #  exits
-        for ex in self.exit:
-            global_matrix[ex.getX()][ex.getY()] = 4
         #  powerups
         for powerup in self.power_ups:
             if powerup.effect == 0:
-                global_matrix[powerup.x][powerup.y] = 5
+                global_matrix[powerup.x][powerup.y] = 7
         return np.array(global_matrix)
 
     def calculate_local_observation_matrix(self, global_matrix, n):
         #  Map Observations
         #     0 = free                                4 = exit
-        #     1 = wall                                5 = power-up_1
-        #     2 = player
-        #     3 = agents/enemies - self if alone
+        #     1 = wall                                5 = fire_x_player
+        #     2 = player                              6 = fire_x_agent/enemie
+        #     3 = agent/enemie                        7 = power-up_1
         # print("local observation map:")
         matricx_local_nxn = [[0 for x in range(n)] for y in range(n)]
         cells = [int(i - (n-1)/2) for i in range(n)]
@@ -257,7 +272,6 @@ class BoatGame:
             for x in cells:
                 mx, my = self.enemy.getX() + x, self.enemy.getY() + y  # just 1 enemy
                 if 0 <= mx < self.GRIDWIDTH / self.TILESIZE and 0 <= my < self.GRIDHEIGHT / self.TILESIZE:
-                    # print("   x,y: " + str(x) + " " + str(y) + "and mx,my: " + str(mx) + " " + str(my))
                     matricx_local_nxn[x+delta_m][y+delta_m] = global_matrix[mx][my]
                 else:
                     matricx_local_nxn[x+delta_m][y+delta_m] = 1
@@ -386,25 +400,26 @@ class BoatGame:
                 pg.time.delay(100)
                 state = self.calc_observation()
 
+                # print current state
                 # self.print_map()
                 # self.print_state(state, "?", "?", "?")
-
-                enemy_action, probability_distribution = self.npc.select_action(state)
                 # enemy_action = self.enemy.random_action()
-                # print("enemy action: " + str(enemy_action))
+                enemy_action, probability_distribution = self.npc.select_action(state)
 
                 # perform agent action
                 is_possible_action = self.enemy.step_turn(enemy_action)
                 # update agent's previus action
                 self.enemy.previus_action = enemy_action
+                # check powerup acquisition
                 for powerup in self.power_ups:
                     if self.enemy.getX() == powerup.x and self.enemy.getY() == powerup.y:
                         powerup.acquired_by(self.enemy)
-                if self.print_info_during_steps:
+                # print next state
+                if self.ON_GAME_PRINT_INFO_DURING_STEPS:
                     done = self.is_game_over()
                     reward = self.calc_reward(done, is_possible_action)
                     self.print_state(state, enemy_action, done, reward)
-                if self.print_map_during_steps:
+                if self.ON_GAME_PRINT_MAP_DURING_STEPS:
                     self.print_map()
 
             if event.type == self.PLAYER_GAME_OVER:

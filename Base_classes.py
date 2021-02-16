@@ -244,8 +244,8 @@ class FireX(pg.sprite.Sprite, Object):
             self.x = self.player.getX() + traj[0] * range_fire
             self.y = self.player.getY() + traj[1] * range_fire
         else:
-            self.x = -10  # todo fix this
-            self.y = -10
+            self.x = 100000  # todo fix this
+            self.y = 100000
 
     def update(self):
         self.rect.x = self.x * self.tilesize
