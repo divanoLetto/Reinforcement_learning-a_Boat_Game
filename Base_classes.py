@@ -118,15 +118,26 @@ class Character(Object):
         return randint(0, self.num_actions - 1)
 
     def shoot_fire(self):
+        if self.nemesi is None:
+            print("error no nemesi")
+        wx = self.nemesi.x
+        wy = self.nemesi.y
         for shoot in self.fire_shoots:
-            if self.nemesi is None:
-                print("error no nemesi")
-            wx = self.nemesi.x
-            wy = self.nemesi.y
             if isClose(wx, shoot.getX(), 0.5) and isClose(wy, shoot.getY(), 0.5):
                 self.nemesi.damage(1)
         self.update_shoot_and_feasible_moves()
         self.nemesi.update_shoot_and_feasible_moves()
+
+    def is_enemy_on_range(self):
+        if self.nemesi is None:
+            print("error no nemesi")
+            return 0
+        wx = self.nemesi.x
+        wy = self.nemesi.y
+        for shoot in self.fire_shoots:
+            if isClose(wx, shoot.getX(), 0.5) and isClose(wy, shoot.getY(), 0.5):
+                return 1
+        return 0
 
     def damage(self, damage):
         # ,print("Damage!")

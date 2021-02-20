@@ -57,12 +57,12 @@ class BoatGame:
         self.count_resetting = 0
         self.nums_values_channel = nums_values_channel[0]
 
+        self.max_game_range_powerup = 4
         self.on_play_mode = on_play_mode
         if on_play_mode:
             self.screen = pg.display.set_mode((self.WIDTH, self.HEIGHT))
             pg.display.set_caption(TITLE)
             pg.key.set_repeat(500, 100)
-
             state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_views=scales_local_views,
                                         num_channels=num_channels_map,
                                         scales_property_views=scales_property_views,
@@ -183,7 +183,7 @@ class BoatGame:
     # reinforcement learning framework functions
     def step(self, actions):
         # agent perform the action
-        is_possible_action = self.enemy.step_turn(actions)  # todo fix this
+        is_possible_action = self.enemy.step_turn(actions)
 
         # random action by the agent's enemy
         if self.ON_SE_MANUAL_INPUT_PLAYER and self.SIMULTAING_ENVIROMENT:
@@ -209,6 +209,7 @@ class BoatGame:
         reward = self.calc_reward(done, is_possible_action)
 
         if self.ON_TRAINING_PRINT_INFO_DURING_STEPS:
+            print("Next state: ")
             self.print_state(observation, actions, done, reward)
         if self.ON_TRAINING_PRINT_MAP_DURING_STEPS:
             self.print_map()
@@ -278,12 +279,21 @@ class BoatGame:
         return np.array(matricx_local_nxn)
 
     def calculate_vector_properties(self, character):
-        # hp [0,1,2]               [ 0 1 2 ]
-        # direction -------------> [ 8 x 4 ]
-        # range [0,1,2,3,4,5]      [ 7 6 5 ]
+        # hp [0,1,2]                   [ 0 1 2 ]
+        # direction -----------------> [ 8 x 4 ]
+        # range [0,1,2,3,4]            [ 7 6 5 ]
+        # flag_enemy_on_range[0,1]
+
         soglia_1 = character.max_hp + 1
         soglia_2 = soglia_1 + character.max_direction_code + 1
-        return [character.hp, soglia_1 + table_feasible_directions[str(character.direction)], soglia_2 + character.range_fire]
+        soglia_3 = soglia_2 + self.max_game_range_powerup + 1
+
+        hp = character.hp
+        direction = soglia_1 + table_feasible_directions[str(character.direction)]
+        range_fire = soglia_2 + character.range_fire
+        flag_enemy_on_range = soglia_3 + character.is_enemy_on_range()
+
+        return [hp, direction, range_fire, flag_enemy_on_range]
 
     def is_game_over(self):
         if self.player.hp <= 0 or self.enemy.hp <= 0:
@@ -469,9 +479,11 @@ class BoatGame:
         print("      agent hp=" + str(observation["property_view_0"][0]))
         print("      agent direction=" + str(observation["property_view_0"][1] - self.enemy.max_hp - 1))
         print("      agent range=" + str(observation["property_view_0"][2] - self.enemy.max_direction_code - self.enemy.max_hp - 2))
+        print("      agent flag_nemesi_in_range=" + str(observation["property_view_0"][3] - self.enemy.max_direction_code - self.enemy.max_hp - self.max_game_range_powerup - 3))
         print("      enemy hp=" + str(observation["property_view_1"][0]))
         print("      enemy direction=" + str(observation["property_view_1"][1] - self.player.max_hp - 1))
         print("      enemy range=" + str(observation["property_view_1"][2] - self.player.max_direction_code - self.player.max_hp - 2))
+        print("      enemy flag_nemesi_in_range=" + str(observation["property_view_1"][3] - self.player.max_direction_code - self.player.max_hp - self.max_game_range_powerup - 3))
         print("      full property view_agent=" + str(observation["property_view_0"]))
         print("      full property view_player=" + str(observation["property_view_1"]))
 

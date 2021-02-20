@@ -11,8 +11,8 @@ num_channels_map = 1
 nums_values_channel = [8]  # massimo valore che posso trovare nelle mappe
 
 num_property_views = 2
-scales_property_views = [3, 3]  # due array di tre elementi
-nums_values_property = [18, 18]  # massimi valori presenti nelle proprietà
+scales_property_views = [4, 4]  # due array di quattro elementi
+nums_values_property = [19, 19]  # massimi valori presenti nelle proprietà
 
 ON_TRAINING_PRINT_MAP_DURING_STEPS = False
 ON_TRAINING_PRINT_INFO_DURING_STEPS = False
