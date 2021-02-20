@@ -11,7 +11,7 @@ state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_vi
                             scales_property_views=scales_property_views, nums_values_channel=nums_values_channel,
                             nums_values_property=nums_values_property, num_actions=num_actions, with_property_embedding=with_property_embedding)
 
-game = BoatGameEnvironment(state, num_actions=num_actions, _max_episode_timesteps=max_episode_timesteps, manual_input=True)
+game = BoatGameEnvironment(state, num_actions=num_actions, _max_episode_timesteps=max_episode_timesteps, manual_input=False)
 
 # Create the net and the baseline
 net = Net(embedding_mode='dense_embedding', num_local_views=num_local_views, num_property_views=num_property_views, num_actions=num_actions, with_property_embedding=with_property_embedding)
