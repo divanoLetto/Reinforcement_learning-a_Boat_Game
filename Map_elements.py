@@ -1,5 +1,5 @@
 from settings import *
-from Base_classes import Object
+from Base_classes import Object, FireX
 
 
 class Wall(pg.sprite.Sprite, Object):
@@ -27,7 +27,8 @@ class PowerUps(pg.sprite.Sprite, Object):
         image = pg.image.load('images/benefits.png')
         if effect == 1:
             image = pg.image.load('images/medicine.png')
-            print("Error powerup not supported")
+        elif effect == 2:
+            image = pg.image.load('images/powerup2.png')
         Object.__init__(self, x, y, image, game)
         self.groups = game.power_ups_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -40,8 +41,12 @@ class PowerUps(pg.sprite.Sprite, Object):
             # more range
             character.range_fire = 4
         elif self.effect == 1:
-            # malus: less range
-            character.range_fire = 1
+            # add front cannon
+            character.fire_shoots.append(FireX(self.game, character, 3, 0))
+        elif self.effect == 2:
+            # add diagonal cannon
+            character.fire_shoots.append(FireX(self.game, character, 4, 3))
+            character.fire_shoots.append(FireX(self.game, character, 5, -3))
         character.update_shoot_and_feasible_moves()
         self.game.power_ups.remove(self)
         self.kill()

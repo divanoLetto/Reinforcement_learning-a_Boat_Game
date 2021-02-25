@@ -1,6 +1,5 @@
-from Base_classes import Character
 from settings import *
-from Utils import isClose
+from Base_classes import Character
 
 
 class Player(pg.sprite.Sprite, Character):

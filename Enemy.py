@@ -1,4 +1,4 @@
-from Base_classes import Character, table_feasible_directions
+from Base_classes import table_feasible_directions, Character
 from settings import *
 from Utils import isClose
 
@@ -22,8 +22,8 @@ class Enemy(pg.sprite.Sprite, Character):
             'images/player_SO2.png',
             'images/player_NO2.png'
         ]
+        self.previus_action = 0
         Character.__init__(self, x, y, list_images, game, game.player, game.feasible_moves_enemy)
-        self.previus_action = 0  # todo update that
         self.image_broken = pg.image.load('images/explosion.png')
 
     def update(self):

@@ -63,6 +63,7 @@ class BoatGame:
             self.screen = pg.display.set_mode((self.WIDTH, self.HEIGHT))
             pg.display.set_caption(TITLE)
             pg.key.set_repeat(500, 100)
+
             state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_views=scales_local_views,
                                         num_channels=num_channels_map,
                                         scales_property_views=scales_property_views,
@@ -120,7 +121,6 @@ class BoatGame:
         self.generateMap()
 
         # player
-        # print("player generating:")
         rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         count = 200
         threshold = 1.2
@@ -129,11 +129,9 @@ class BoatGame:
             count -= 1
             if count < 0:
                 threshold = 0.5
-        # print("    " + str(rand_px) + " " + str(rand_py))
         self.player = Player(self, rand_px, rand_py, self.on_play_mode)
 
         # enemies
-        # print("enemies generating:")
         rand_ex, rand_ey = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
         count = 200
         threshold = 1.2
@@ -145,12 +143,10 @@ class BoatGame:
                     threshold = 0.5
         except Exception as e:
             print("Something else went wrong 1")
-        # print("    " + str(rand_ex) + " " + str(rand_ey))
         self.enemy = Enemy(self, rand_ex, rand_ey, self.on_play_mode)
         self.player.set_nemesi(self.enemy)
 
         # exit
-        # print("exit generating:")
         self.exit = []
         if self.NUM_EXITS != 0:
             rand_exit_x, rand_exit_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE - 1)
@@ -160,19 +156,19 @@ class BoatGame:
             except Exception as e:
                 print("Something else went wrong 2")
             self.exit.append(Exit(self, rand_exit_x, rand_exit_y))
-        # print("    " + str(rand_exit_x) + " " + str(rand_exit_y))
 
         # power ups
-        # print("power ups generating:")
         num_powerup = random.randint(self.MIN_NUM_POWERUP, self.MAX_NUM_POWERUP)
+        effects = [0, 1, 2]
+        random.shuffle(effects)
+
         for i in range(num_powerup):
             rand_pow_x, rand_pow_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE -1)
-            rand_effect = 0
+            rand_effect = effects[i]
             while any(isClose(rand_pow_x, w.x, 0.5) and isClose(rand_pow_y, w.y, 0.5) for w in
                       self.walls + [self.player] + [self.enemy] + self.power_ups):
                 rand_pow_x, rand_pow_y = random.randint(0, self.GRIDWIDTH / self.TILESIZE - 1), random.randint(0, self.GRIDHEIGHT / self.TILESIZE -1)
             self.power_ups.append(PowerUps(self, rand_pow_x, rand_pow_y, rand_effect))
-        #     print("    " + str(rand_pow_x) + " " + str(rand_pow_y))
 
         if self.ON_TRAINING_PRINT_MAP_DURING_STEPS:
             print("Map generated:")
@@ -229,10 +225,11 @@ class BoatGame:
 
     def calculate_global_observation_matrix(self):
         #  Map Observations
-        #     0 = free                                4 = exit
-        #     1 = wall                                5 = fire_x_player
-        #     2 = player                              6 = fire_x_agent/enemie
-        #     3 = agent/enemie                        7 = power-up_1
+        #     0 = free                                5 = fire_x_player
+        #     1 = wall                                6 = fire_x_agent/enemie
+        #     2 = player                              7 = power-up_1 more range
+        #     3 = agent/enemie                        8 = power-up_2 front cannon
+        #     4 = exit                                9 = power-up_3 back diagonal cannon
 
         w, h = int(self.GRIDWIDTH / self.TILESIZE), int(self.GRIDHEIGHT / self.TILESIZE)
         global_matrix = [[0 for y in range(h)] for x in range(w)]
@@ -257,6 +254,10 @@ class BoatGame:
         for powerup in self.power_ups:
             if powerup.effect == 0:
                 global_matrix[powerup.x][powerup.y] = 7
+            elif powerup.effect == 1:
+                global_matrix[powerup.x][powerup.y] = 8
+            elif powerup.effect == 2:
+                global_matrix[powerup.x][powerup.y] = 9
         return np.array(global_matrix)
 
     def calculate_local_observation_matrix(self, global_matrix, n):

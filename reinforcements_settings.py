@@ -8,7 +8,7 @@ scale_global_view = [int(GRIDWIDTH / TILESIZE), int(GRIDHEIGHT / TILESIZE)]
 num_local_views = 2
 scales_local_views = [3, 5]
 num_channels_map = 1
-nums_values_channel = [8]  # massimo valore che posso trovare nelle mappe
+nums_values_channel = [10]  # massimo valore che posso trovare nelle mappe
 
 num_property_views = 2
 scales_property_views = [4, 4]  # due array di quattro elementi

@@ -1,7 +1,6 @@
+from random import randint
 from settings import *
 from Utils import isClose
-from random import randint
-
 
 table_feasible_directions = {
         "0": [-1, -1],
@@ -217,7 +216,10 @@ class FeasibleMove(pg.sprite.Sprite, Object):
 
 class FireX(pg.sprite.Sprite, Object):
     def __init__(self, game, player,  id, traj):
-        Object.__init__(self, None, None, pg.image.load('images/fire_x.png'), game)
+        image = pg.image.load('images/fire_x.png')
+        if not hasattr(player, 'previus_action'): # if is the player
+            image = pg.image.load('images/fire_x_p.png')
+        Object.__init__(self, None, None, image, game)
         self.groups = game.fire_xs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -261,5 +263,3 @@ class FireX(pg.sprite.Sprite, Object):
     def update(self):
         self.rect.x = self.x * self.tilesize
         self.rect.y = self.y * self.tilesize
-
-
