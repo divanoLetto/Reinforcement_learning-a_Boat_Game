@@ -71,6 +71,7 @@ class Character(Object):
         self.hp = 1
         self.max_hp = 2
         self.num_actions = 1 + len(self.feasible_move)
+        self.powerup_acquired = []
 
     def fire_x_init(self):
         fire_xs = []
@@ -169,6 +170,15 @@ class Character(Object):
 
     def set_nemesi(self, character):
         self.nemesi = character
+
+    def has_powerup(self, n):
+        for p in self.powerup_acquired:
+            if p == n:
+                return 1
+        return 0
+
+    def powerup_acquisition(self, n):
+        self.powerup_acquired.append(n)
 
 
 class FeasibleMove(pg.sprite.Sprite, Object):

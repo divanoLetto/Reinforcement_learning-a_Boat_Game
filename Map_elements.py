@@ -47,6 +47,8 @@ class PowerUps(pg.sprite.Sprite, Object):
             # add diagonal cannon
             character.fire_shoots.append(FireX(self.game, character, 4, 3))
             character.fire_shoots.append(FireX(self.game, character, 5, -3))
+        character.powerup_acquisition(self.effect)
+
         character.update_shoot_and_feasible_moves()
         self.game.power_ups.remove(self)
         self.kill()

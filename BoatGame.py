@@ -288,13 +288,19 @@ class BoatGame:
         soglia_1 = character.max_hp + 1
         soglia_2 = soglia_1 + character.max_direction_code + 1
         soglia_3 = soglia_2 + self.max_game_range_powerup + 1
+        soglia_4 = soglia_3 + 1 + 1
+        soglia_5 = soglia_4 + 1 + 1
+        soglia_6 = soglia_5 + 1 + 1
 
         hp = character.hp
         direction = soglia_1 + table_feasible_directions[str(character.direction)]
         range_fire = soglia_2 + character.range_fire
         flag_enemy_on_range = soglia_3 + character.is_enemy_on_range()
+        powerup0 = soglia_4 + character.has_powerup(0)
+        powerup1 = soglia_5 + character.has_powerup(1)
+        powerup2 = soglia_6 + character.has_powerup(2)
 
-        return [hp, direction, range_fire, flag_enemy_on_range]
+        return [hp, direction, range_fire, flag_enemy_on_range, powerup0, powerup1, powerup2]
 
     def is_game_over(self):
         if self.player.hp <= 0 or self.enemy.hp <= 0:
@@ -473,18 +479,33 @@ class BoatGame:
         pg.display.flip()
 
     def print_state(self, observation, actions, done, reward):
+        soglia_1 = self.enemy.max_hp + 1
+        soglia_2 = soglia_1 + self.enemy.max_direction_code + 1
+        soglia_3 = soglia_2 + self.max_game_range_powerup + 1
+        soglia_4 = soglia_3 + 1 + 1
+        soglia_5 = soglia_4 + 1 + 1
+        soglia_6 = soglia_5 + 1 + 1
+
         print("L'azione: " + str(actions) + " ha prodotto un reward di Reward: " + str(reward))
         print("   Done= " + str(done))
         print("   Agent previus action= " + str(observation["prev_action"]))
         print("   Property view: ")
         print("      agent hp=" + str(observation["property_view_0"][0]))
-        print("      agent direction=" + str(observation["property_view_0"][1] - self.enemy.max_hp - 1))
-        print("      agent range=" + str(observation["property_view_0"][2] - self.enemy.max_direction_code - self.enemy.max_hp - 2))
-        print("      agent flag_nemesi_in_range=" + str(observation["property_view_0"][3] - self.enemy.max_direction_code - self.enemy.max_hp - self.max_game_range_powerup - 3))
+        print("      agent direction=" + str(observation["property_view_0"][1] - soglia_1))
+        print("      agent range=" + str(observation["property_view_0"][2] - soglia_2))
+        print("      agent flag_nemesi_in_range=" + str(observation["property_view_0"][3] - soglia_3))
+        print("      agent has powerup 0 (range)=" + str(observation["property_view_0"][4] - soglia_4))
+        print("      agent has powerup 1 (front cannon)=" + str(observation["property_view_0"][5] - soglia_5))
+        print("      agent has powerup 2 (back diagonal cannon)=" + str(observation["property_view_0"][6] - soglia_6))
+        print()
         print("      enemy hp=" + str(observation["property_view_1"][0]))
-        print("      enemy direction=" + str(observation["property_view_1"][1] - self.player.max_hp - 1))
-        print("      enemy range=" + str(observation["property_view_1"][2] - self.player.max_direction_code - self.player.max_hp - 2))
-        print("      enemy flag_nemesi_in_range=" + str(observation["property_view_1"][3] - self.player.max_direction_code - self.player.max_hp - self.max_game_range_powerup - 3))
+        print("      enemy direction=" + str(observation["property_view_1"][1] - soglia_1))
+        print("      enemy range=" + str(observation["property_view_1"][2] - soglia_2))
+        print("      enemy flag_nemesi_in_range=" + str(observation["property_view_1"][3] - soglia_3))
+        print("      agent has powerup 0 (range)=" + str(observation["property_view_1"][4] - soglia_4))
+        print("      agent has powerup 1 (front cannon)=" + str(observation["property_view_1"][5] - soglia_5))
+        print("      agent has powerup 2 (back diagonal cannon)=" + str(observation["property_view_1"][6] - soglia_6))
+        print()
         print("      full property view_agent=" + str(observation["property_view_0"]))
         print("      full property view_player=" + str(observation["property_view_1"]))
 
