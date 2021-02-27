@@ -14,5 +14,6 @@ num_property_views = 2
 scales_property_views = [7, 7]  # due array di quattro elementi
 nums_values_property = [25, 25]  # massimi valori presenti nelle proprietà
 
+MANUAL_INPUT = False
 ON_TRAINING_PRINT_MAP_DURING_STEPS = False
 ON_TRAINING_PRINT_INFO_DURING_STEPS = False

@@ -1,5 +1,6 @@
-from settings import *
 from Base_classes import Character
+from settings import ENEMY_TURN_EVENT, PLAYER_GAME_OVER
+import pygame as pg
 
 
 class Player(pg.sprite.Sprite, Character):

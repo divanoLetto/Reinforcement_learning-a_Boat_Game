@@ -1,5 +1,6 @@
-from settings import *
 from Base_classes import Object, FireX
+from settings import WALL_COLOR, TILESIZE, YELLOW
+import pygame as pg
 
 
 class Wall(pg.sprite.Sprite, Object):

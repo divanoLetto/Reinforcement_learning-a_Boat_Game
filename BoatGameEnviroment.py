@@ -31,7 +31,8 @@ class BoatGameEnvironment(Game):
 
     # Method that resets the game to a new episode. It returns a state dict.
     def reset(self):
-        observation = self.game.reset()
+        map_dim = self.config["map_dimentions"]
+        observation = self.game.reset(map_dim)
         return observation
 
     # Method that make a step in the game. It takes an action and returns (state, done, reward).

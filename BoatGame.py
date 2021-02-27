@@ -1,6 +1,5 @@
 import sys
 import pandas
-
 from Map_elements import *
 from Player import *
 from Enemy import *
@@ -8,26 +7,24 @@ from pygame_widgets import Button
 import random
 import numpy as np
 from tabulate import tabulate
-
 from deepcrawl.agents.npc import NPC
 from deepcrawl.environment.game import Game
 from deepcrawl.net_structures.net import Net, Baseline
 from deepcrawl.state.dense_embedding_state import DenseEmbeddingState
-from reinforcements_settings import ON_TRAINING_PRINT_MAP_DURING_STEPS, ON_TRAINING_PRINT_INFO_DURING_STEPS, nums_values_channel
-from reinforcements_settings import num_actions, max_episode_timesteps, with_property_embedding, num_local_views
+from settings import *
+from reinforcements_settings import ON_TRAINING_PRINT_MAP_DURING_STEPS, ON_TRAINING_PRINT_INFO_DURING_STEPS
+from reinforcements_settings import num_actions, with_property_embedding, num_local_views, nums_values_channel
 from reinforcements_settings import num_channels_map, num_property_views, scale_global_view, scales_local_views
 from reinforcements_settings import scales_property_views, nums_values_channel, nums_values_property
+from Utils import isClose
 
 
 class BoatGame:
     def __init__(self, on_play_mode):
         pg.init()
         self.clock = pg.time.Clock()
-        self.ON_TRAINING_PRINT_MAP_DURING_STEPS = ON_TRAINING_PRINT_MAP_DURING_STEPS
-        self.ON_TRAINING_PRINT_INFO_DURING_STEPS = ON_TRAINING_PRINT_INFO_DURING_STEPS
         self.ON_GAME_PRINT_MAP_DURING_STEPS = ON_GAME_PRINT_MAP_DURING_STEPS
         self.ON_GAME_PRINT_INFO_DURING_STEPS = ON_GAME_PRINT_INFO_DURING_STEPS
-
         self.SETTING_WIDTH = SETTING_WIDTH
         self.SETTING_HEIGHT = SETTING_HEIGHT
         self.TILESIZE = TILESIZE
@@ -49,16 +46,17 @@ class BoatGame:
         self.SIMULTAING_ENVIROMENT = SIMULTAING_ENVIROMENT
         self.ON_SE_MANUAL_INPUT = ON_SIMULATING_ENV_MANUAL_INPUT_AGENT
         self.ON_SE_MANUAL_INPUT_PLAYER = ON_SIMULATING_ENV_MANUAL_INPUT_PLAYER
-
         self.ENEMY_TURN_EVENT = ENEMY_TURN_EVENT
         self.PLAYER_SHOOT_EVENT = PLAYER_SHOOT_EVENT
         self.PLAYER_GAME_OVER = PLAYER_GAME_OVER
-
         self.count_resetting = 0
-        self.nums_values_channel = nums_values_channel[0]
 
         self.max_game_range_powerup = 4
         self.on_play_mode = on_play_mode
+        self.nums_values_channel = nums_values_channel[0]
+        self.ON_TRAINING_PRINT_MAP_DURING_STEPS = ON_TRAINING_PRINT_MAP_DURING_STEPS
+        self.ON_TRAINING_PRINT_INFO_DURING_STEPS = ON_TRAINING_PRINT_INFO_DURING_STEPS
+
         if on_play_mode:
             self.screen = pg.display.set_mode((self.WIDTH, self.HEIGHT))
             pg.display.set_caption(TITLE)
@@ -101,7 +99,7 @@ class BoatGame:
     def fire_shoot_event(self):
         pg.event.post(pg.event.Event(PLAYER_SHOOT_EVENT))
 
-    def reset(self):
+    def reset(self, map_dim = None):
         # print("my_reset " + str(self.count_resetting))
         self.count_resetting += 1
         # sprites
@@ -119,6 +117,8 @@ class BoatGame:
         self.power_ups = []
         # walls
         self.generateMap()
+        if map_dim is not None:
+            self.resize_map(map_dim)
 
         # player
         rand_px, rand_py = random.randint(1, self.GRIDWIDTH / self.TILESIZE - 2), random.randint(1, self.GRIDHEIGHT / self.TILESIZE - 2)
@@ -346,6 +346,42 @@ class BoatGame:
                     if 0 < pos_x < int(self.GRIDWIDTH / self.TILESIZE) and 0 < pos_y < int(self.GRIDHEIGHT / self.TILESIZE) :
                         # print("    " + str(pos_x) + " " + str(pos_y))
                         self.walls.append(Wall(self, pos_x, pos_y))
+
+    def resize_map(self, map_dim):
+        map_width = map_dim[0]
+        map_height = map_dim[1]
+        full_map_width = int(self.GRIDWIDTH / self.TILESIZE)
+        full_map_height = int(self.GRIDHEIGHT / self.TILESIZE)
+        # x
+        diff_x = full_map_width - map_width
+        if diff_x % 2 == 0:
+            edge_x1 = edge_x2 = int(diff_x/2)
+        else:
+            edge_x1 = int(diff_x / 2) + 1
+            edge_x2 = int(diff_x / 2)
+        for y in range(full_map_height):
+            x1 = edge_x1
+            for x_ in range(x1):
+                self.walls.append(Wall(self, x_, y))
+            x2 = full_map_width - edge_x2
+            for x_ in range(x2, full_map_width):
+                self.walls.append(Wall(self, x_, y))
+        # y
+        diff_y = full_map_height - map_height
+        if diff_y % 2 == 0:
+            edge_y1 = edge_y2 = int(diff_y / 2)
+        else:
+            edge_y1 = int(diff_y / 2) + 1
+            edge_y2 = int(diff_y / 2)
+        for x in range(full_map_width):
+            y1 = edge_y1
+            for y_ in range(y1):
+                self.walls.append(Wall(self, x, y_))
+            y2 = full_map_height - edge_y2
+            for y_ in range(y2, full_map_height):
+                self.walls.append(Wall(self, x, y_))
+
+
 
     # online game functions
     def run(self):

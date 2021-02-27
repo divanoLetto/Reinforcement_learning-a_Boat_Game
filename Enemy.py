@@ -1,6 +1,6 @@
 from Base_classes import table_feasible_directions, Character
-from settings import *
-from Utils import isClose
+from settings import PLAYER_GAME_OVER
+import pygame as pg
 
 
 class Enemy(pg.sprite.Sprite, Character):
