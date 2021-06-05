@@ -7,6 +7,8 @@ from pygame_widgets import Button
 import random
 import numpy as np
 from tabulate import tabulate
+
+from Powerup_visualization import Powerups_visualization
 from deepcrawl.agents.npc import NPC
 from deepcrawl.environment.game import Game
 from deepcrawl.net_structures.net import Net, Baseline
@@ -111,6 +113,8 @@ class BoatGame:
         self.exit_sprites = pg.sprite.Group()
         self.power_ups_sprites = pg.sprite.Group()
         self.walls_sprites = pg.sprite.Group()
+        self.powerups_visualization_sprites = pg.sprite.Group()
+        self.powerups_visualization_text_sprites = pg.sprite.Group()
 
         self.enemy = None
         self.walls = []
@@ -261,11 +265,6 @@ class BoatGame:
         return np.array(global_matrix)
 
     def calculate_local_observation_matrix(self, global_matrix, n):
-        #  Map Observations
-        #     0 = free                                4 = exit
-        #     1 = wall                                5 = fire_x_player
-        #     2 = player                              6 = fire_x_agent/enemie
-        #     3 = agent/enemie                        7 = power-up_1
         # print("local observation map:")
         matricx_local_nxn = [[0 for x in range(n)] for y in range(n)]
         cells = [int(i - (n-1)/2) for i in range(n)]
@@ -490,6 +489,8 @@ class BoatGame:
         self.exit_sprites.update()
         self.power_ups_sprites.update()
         self.walls_sprites.update()
+        self.powerups_visualization_sprites.update()
+        self.powerups_visualization_text_sprites.update()
 
     def draw_grid(self):
         for x in range(0, self.GRIDWIDTH + self.TILESIZE, self.TILESIZE):
@@ -510,6 +511,8 @@ class BoatGame:
         self.power_ups_sprites.draw(self.screen)
         self.fire_xs.draw(self.screen)
         self.characters_sprites.draw(self.screen)
+        self.powerups_visualization_sprites.draw(self.screen)
+        self.powerups_visualization_text_sprites.draw(self.screen)
 
         self.button_fire.draw()
         pg.display.flip()
@@ -552,3 +555,6 @@ class BoatGame:
         df[self.player.getX()][self.player.getY()] = "#p#"
         df[self.enemy.getX()][self.enemy.getY()] = "!e!"
         print(tabulate(df, headers='keys', tablefmt='fancy_grid'))
+
+    def add_player_powerup_visualization(self, effect):
+        Powerups_visualization(self, effect)

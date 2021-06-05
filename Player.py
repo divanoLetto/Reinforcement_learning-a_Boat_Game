@@ -2,6 +2,7 @@ from Base_classes import Character
 from settings import ENEMY_TURN_EVENT, PLAYER_GAME_OVER
 import pygame as pg
 
+LIGHTLIGHTGREY = (100,100,100)
 
 class Player(pg.sprite.Sprite, Character):
     #  Actions:
@@ -22,7 +23,7 @@ class Player(pg.sprite.Sprite, Character):
             'images/player_SO1.png',
             'images/player_NO1.png'
         ]
-        Character.__init__(self, x, y, list_images, game, game.enemy, game.feasible_moves_player)
+        Character.__init__(self, x, y, list_images, game, game.enemy, game.feasible_moves_player, color=LIGHTLIGHTGREY)
 
     def move(self, dx, dy):
         Character.move(self, dx, dy)
@@ -43,3 +44,7 @@ class Player(pg.sprite.Sprite, Character):
         if self.hp <= 0:
             if self.on_play_mode:
                 pg.event.post(pg.event.Event(PLAYER_GAME_OVER))
+
+    def powerup_acquisition(self, n):
+        Character.powerup_acquisition(self, n)
+        self.game.add_player_powerup_visualization(n)

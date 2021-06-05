@@ -8,13 +8,8 @@ from reinforcements_settings import num_channels_map, num_property_views, scale_
 from reinforcements_settings import scales_property_views, nums_values_channel, nums_values_property, MANUAL_INPUT
 from deepcrawl.curriculum.curriculum import Curriculum
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-physical_devices = tf.config.experimental.list_physical_devices('GPU')
-if len(physical_devices) > 0:
-  tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
-curriculum = Curriculum(thresholds=[2e6])
-curriculum.set_parameters("map_dimentions", [[9, 9], [14, 14]])
+curriculum = Curriculum(thresholds=[2e6, 3e6])
+curriculum.set_parameters("map_dimentions", [[9, 9], [12,12], [14, 14]])
 
 state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_views=scales_local_views, num_channels=num_channels_map,
                             scales_property_views=scales_property_views, nums_values_channel=nums_values_channel,
