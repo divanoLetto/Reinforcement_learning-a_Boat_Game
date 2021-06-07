@@ -27,3 +27,6 @@ The following is the original abstract of the project.
 *The scope of this paper is to verify if appropriate Deep Reinforcement Learning strategies can prove effective for the realization of non-player characters in a video game such as to have a credible behavior and able to provide a pleasant and stimulating game challenge for the user. 
 For this purpose, a turn-based roguelike prototype has been created in which the adversary agents are made through DRL methods through the framework created by Alessandro Sestini, Alexander Kuhnle and Andrew D. Bagdanov. 
 The agents obtained were tested quantitatively and qualitatively in order to determine if their final behavior was convincing according to the set objectives. Finally, an evaluation was given to the framework used to create the agents.* 
+
+
+All information on the project is reported in the *report.pdf* file
