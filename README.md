@@ -17,7 +17,7 @@ In addition, the backups of the agents and the framework necessary to use them c
 
 In order to run the program simply run python3 main.py`.
  
- ![Neural3DMM architecture](images/screen.png "Neural3DMM architecture")
+ ![DRL Boat Game](images/screen.png "DRL Boat Game")
  
 The following is the original abstract of the project.
 
@@ -27,5 +27,3 @@ The following is the original abstract of the project.
 *The scope of this paper is to verify if appropriate Deep Reinforcement Learning strategies can prove effective for the realization of non-player characters in a video game such as to have a credible behavior and able to provide a pleasant and stimulating game challenge for the user. 
 For this purpose, a turn-based roguelike prototype has been created in which the adversary agents are made through DRL methods through the framework created by Alessandro Sestini, Alexander Kuhnle and Andrew D. Bagdanov. 
 The agents obtained were tested quantitatively and qualitatively in order to determine if their final behavior was convincing according to the set objectives. Finally, an evaluation was given to the framework used to create the agents.* 
-
-[Arxiv link](https://arxiv.org/abs/1905.02876)
