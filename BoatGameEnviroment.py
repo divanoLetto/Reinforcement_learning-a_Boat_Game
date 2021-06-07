@@ -32,7 +32,7 @@ class BoatGameEnvironment(Game):
     # Method that resets the game to a new episode. It returns a state dict.
     def reset(self):
         map_dim = self.config["map_dimentions"]
-        # print("Map dim ", map_dim)
+        #print("Map dim ", map_dim)
         observation = self.game.reset(map_dim)
         return observation
 

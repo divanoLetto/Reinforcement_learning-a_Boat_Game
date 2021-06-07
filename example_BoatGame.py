@@ -8,7 +8,7 @@ from reinforcements_settings import num_channels_map, num_property_views, scale_
 from reinforcements_settings import scales_property_views, nums_values_channel, nums_values_property, MANUAL_INPUT
 from deepcrawl.curriculum.curriculum import Curriculum
 
-curriculum = Curriculum(thresholds=[2e6, 3e6])
+curriculum = Curriculum(thresholds=[2e5, 3e5])
 curriculum.set_parameters("map_dimentions", [[9, 9], [12,12], [14, 14]])
 
 state = DenseEmbeddingState(scale_global_view=scale_global_view, scales_local_views=scales_local_views, num_channels=num_channels_map,

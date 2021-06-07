@@ -1,7 +1,7 @@
 from settings import GRIDWIDTH, GRIDHEIGHT, TILESIZE
 
 num_actions = 6  # 4
-max_episode_timesteps = 100
+max_episode_timesteps = 300
 with_property_embedding = True
 
 scale_global_view = [int(GRIDWIDTH / TILESIZE), int(GRIDHEIGHT / TILESIZE)]
