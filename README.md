@@ -1,4 +1,4 @@
-# Deep Reinforcement Learning in a Boat Game **Human Computer Interaction**
+# Deep Reinforcement Learning in a Boat Game
 ## Authors: Lorenzo Mandelli
 #### Università degli Studi di Firenze
 
@@ -16,6 +16,8 @@ In addition, the backups of the agents and the framework necessary to use them c
 ## Usage
 
 In order to run the program simply run python3 main.py`.
+ 
+ ![Neural3DMM architecture](images/screen.png "Neural3DMM architecture")
  
 The following is the original abstract of the project.
 
