@@ -15,7 +15,7 @@ In addition, the backups of the agents and the framework necessary to use them c
 
 ## Usage
 
-In order to run the program simply run python3 main.py`.
+In order to run the program simply run *python3 main.py*.
  
  ![DRL Boat Game](images/screen.png "DRL Boat Game")
  
