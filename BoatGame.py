@@ -115,6 +115,7 @@ class BoatGame:
         self.walls_sprites = pg.sprite.Group()
         self.powerups_visualization_sprites = pg.sprite.Group()
         self.powerups_visualization_text_sprites = pg.sprite.Group()
+        Powerups_visualization.sy = 0
 
         self.enemy = None
         self.walls = []

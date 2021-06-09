@@ -47,4 +47,5 @@ class Player(pg.sprite.Sprite, Character):
 
     def powerup_acquisition(self, n):
         Character.powerup_acquisition(self, n)
-        self.game.add_player_powerup_visualization(n)
+        if self.game.on_play_mode:
+            self.game.add_player_powerup_visualization(n)
