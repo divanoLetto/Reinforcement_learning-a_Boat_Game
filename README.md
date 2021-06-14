@@ -9,7 +9,8 @@
 The project need the following libraries: 
 * Tensorflow 2.2.0
 * Tensorforce 0.5.5
-The latest versions of the remaining required libraries can be used.
+
+The latest versions of the remaining required libraries (*matplotlib, numpy, pandas, pygame, pygame-widgets, tabulate*) can be used.
 
 In addition, the backups of the agents and the framework necessary to use them can be found at this [Link](https://drive.google.com/drive/folders/1-h5oJv1MsJ-lxjT5vHgujoqfLluG1l5a?usp=sharing "files")
 
