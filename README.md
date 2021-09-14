@@ -30,4 +30,4 @@ For this purpose, a turn-based roguelike prototype has been created in which the
 The agents obtained were tested quantitatively and qualitatively in order to determine if their final behavior was convincing according to the set objectives. Finally, an evaluation was given to the framework used to create the agents.* 
 
 
-All information on the project is reported in the ![*relazione.pdf*](https://github.com/divanoLetto/Reinforcement_learning-a_Boat_Game/blob/main/relazione.pdf relazione.pdf")  file.
+All information on the project is reported in the [*relazione.pdf*](https://github.com/divanoLetto/Reinforcement_learning-a_Boat_Game/blob/main/relazione.pdf "relazione.pdf")  file. 
